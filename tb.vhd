@@ -16,7 +16,16 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+--use std.textio.all;
+--use ieee.std_logic_textio.all;
 
 --entity
 
 --architecture
+
+
+--open and close file
+--architecture test of my_testbench
+  --filetest_data_file: text;
+--begin
+  --file_open(test_data_file, “C:\test.txt”, read_mode);

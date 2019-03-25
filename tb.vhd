@@ -5,7 +5,7 @@
 --Create Date:  03/24/2019
 --Design Name:
 --Module Name:
---Project Name: PCM Encoding/Decoding
+--Project Name: PCM Communication System
 --Tool Versions:
 --Description:
 

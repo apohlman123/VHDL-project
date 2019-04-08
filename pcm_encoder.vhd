@@ -46,6 +46,7 @@ BEGIN
         ELSIF rising_edge(b_clk_i) THEN                          --Infer DFFs and Muxes
             IF mux_select = '1' THEN                             --Data input should occur at the start of each N-bit frame
                                                                  --Need to add Frame Clock to determine when data is transferred in
+                                                                 --Change to IF rising_edge(mux_select) ... or make MUX the frame clk
                 FOR i in bit_depth-1 downto 1 LOOP
                     q_sig(i) <= encoder_d_i(i);                  --Assign DFF outputs w/ parallel data
                 END LOOP;
@@ -56,6 +57,9 @@ BEGIN
                 END LOOP;
                 q_sig(bit_depth-1) <= '1';                       --MSB DFF gets a '1' input
                 encoder_q_o <= q_sig(1);                         --Assign encoder output w/ LSB DFF output
+                                                                 --Note that DATA is LSB first
+                                                                 --Also, first serial data bit is valid as soon as mux_select is
+                                                                 --asserted, not after it goes low since encoder_q_o gets encoder_d_i(0)
             END IF;
         END IF;
     END encoder_process;

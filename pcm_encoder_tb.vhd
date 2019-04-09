@@ -30,8 +30,9 @@ architecture test of pcm_encoder_tb is
     signal encoder_d_i_s : std_logic_vector(7 downto 0);
     signal mux_select_s  : std_logic;
     signal rst_i_async_s : std_logic;
+    signal encoder_q_o_s   : std_logic;
     
-    constant clock_period : time := 100 ms;
+    constant clock_period : time := 10 ns;
     
     begin
         uut: entity work.pcm_encoder(behav)
@@ -42,7 +43,8 @@ architecture test of pcm_encoder_tb is
             b_clk_i => b_clk_i_s,
             encoder_d_i => encoder_d_i_s,
             mux_select => mux_select_s,
-            rst_i_async => rst_i_async_s
+            rst_i_async => rst_i_async_s,
+            encoder_q_o => encoder_q_o_s
         );
         
         clock_process : process
@@ -56,40 +58,72 @@ architecture test of pcm_encoder_tb is
         stim_process : process
         begin
             rst_i_async_s <= '1';
+            mux_select_s <= '1';
+            encoder_d_i_s <= "00011100";
+            wait for 15 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '1';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
             mux_select_s <= '0';
-            encoder_d_i_s <= "00000000";
-            wait for 100 ms;
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
+            rst_i_async_s <= '0';
+            mux_select_s <= '0';
+            encoder_d_i_s <= "00011100";
+            wait for 10 ns;
             rst_i_async_s <= '0';
             mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait for 100 ms;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
             rst_i_async_s <= '0';
-            mux_select_s <= '1';
-            encoder_d_i_s <= "00010101";
-            wait;
+            mux_select_s <= '0';
+            encoder_d_i_s <= "01110111";
+            wait for 10 ns;
         end process;
 end test;

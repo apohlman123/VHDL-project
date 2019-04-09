@@ -23,7 +23,8 @@ USE IEEE.std_logic_1164.ALL;
 
 ENTITY pcm_encoder IS
     GENERIC (
-        bit_depth : integer := 8                                 --Variable bit depth
+        bit_depth : integer := 8                                 --Variable bit depth (8,16,24,32)
+        sample_freq : integer := 44100                           --Variable sampling frequency (44.1k,48k,96k,192k)
     );
 
     PORT (

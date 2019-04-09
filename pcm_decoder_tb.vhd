@@ -3,7 +3,7 @@
 --Engineer:     Joseph Gorman
 
 --Create Date:  04/7/2019
---Design Name:  pcm_encoder_tb.vhd
+--Design Name:  pcm_decoder_tb.vhd
 --Module Name:
 --Project Name: PCM Communication System
 --Tool Versions:
@@ -57,28 +57,28 @@ architecture test of pcm_decoder_tb is
         begin
             rst_i_async_s <= '1';
             decoder_d_i_s <= '0';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '0';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '1';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '0';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '1';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '1';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '1';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '0';
-            wait for 30 ns;
+            wait for 10 ns;
             rst_i_async_s <= '0';
             decoder_d_i_s <= '0';
             wait;

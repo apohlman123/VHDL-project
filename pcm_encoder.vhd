@@ -15,6 +15,7 @@
 
 --Revisions:
     --A : created file, wrote encoder_process
+    --B : reversed operation to Big Endian (MSB first)
 ------------------------------------------------------------------------------
 
 LIBRARY IEEE;
@@ -36,7 +37,7 @@ END pcm_encoder;
 
 ARCHITECTURE behav OF pcm_encoder IS
     signal   q_sig   : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
-    constant gnd_sig : std_logic_vector(bit_depth-1 downto 0);   --Used for GND in reset
+    constant gnd_sig : std_logic_vector(bit_depth-1 downto 1) := "0000000"  --Used for GND in reset
 BEGIN
     encoder_process : PROCESS(rst_i_async, b_clk_i)
     BEGIN
@@ -48,18 +49,18 @@ BEGIN
                                                                  --Need to add Frame Clock to determine when data is transferred in
                                                                  --Change to IF rising_edge(mux_select) ... or make MUX the frame clk
                 FOR i in bit_depth-1 downto 1 LOOP
-                    q_sig(i) <= encoder_d_i(i);                  --Assign DFF outputs w/ parallel data
+                    q_sig(i) <= encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
                 END LOOP;
-                encoder_q_o <= encoder_d_i(0);                   --Assign encoder output w/ LSB of parallel data
+                encoder_q_o <= encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
             ELSIF                                                --Conditional to shift serial data out
                 FOR i in bit_depth-2 downto 1 LOOP
-                    q_sig(i) <= q_sig(i+1);                      --Connect inferred DFFs MSB-to-LSB
+                    q_sig(i) <= q_sig(i+1);                      --Connect inferred DFFs LSB-to-MSB
                 END LOOP;
-                q_sig(bit_depth-1) <= '1';                       --MSB DFF gets a '1' input
+                q_sig(bit_depth-1) <= '1';                       --LSB DFF gets a '1' input
                 encoder_q_o <= q_sig(1);                         --Assign encoder output w/ LSB DFF output
-                                                                 --Note that DATA is LSB first
+                                                                 --Note that DATA is MSB first
                                                                  --Also, first serial data bit is valid as soon as mux_select is
-                                                                 --asserted, not after it goes low since encoder_q_o gets encoder_d_i(0)
+                                                                 --asserted, not after it goes low since encoder_q_o gets encoder_d_i(bit_depth-1)
             END IF;
         END IF;
     END encoder_process;

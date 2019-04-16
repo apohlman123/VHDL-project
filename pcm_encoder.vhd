@@ -23,7 +23,7 @@ USE IEEE.std_logic_1164.ALL;
 
 ENTITY pcm_encoder IS
     GENERIC (
-        bit_depth : integer := 8                                 --Variable bit depth (8,16,24,32)
+        bit_depth : integer := 8;                                 --Variable bit depth (8,16,24,32)
         sample_freq : integer := 44100                           --Variable sampling frequency (44.1k,48k,96k,192k)
     );
 
@@ -38,7 +38,7 @@ END pcm_encoder;
 
 ARCHITECTURE behav OF pcm_encoder IS
     signal   q_sig   : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
-    constant gnd_sig : std_logic_vector(bit_depth-1 downto 1) := "0000000"  --Used for GND in reset
+    constant gnd_sig : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
 BEGIN
     encoder_process : PROCESS(rst_i_async, b_clk_i)
     BEGIN

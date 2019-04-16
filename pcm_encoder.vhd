@@ -29,8 +29,9 @@ ENTITY pcm_encoder IS
 
     PORT (
         b_clk_i     : IN std_logic;                              --Bit Clock input to shift data
-        encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0); --Parallel data input
-        mux_select  : IN std_logic;                              --Select for inferred muxes
+        left_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0); --Parallel data input
+        right_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0);
+        LRCK_i      : IN std_logic;                              --Frame clock input
         rst_i_async : IN std_logic;                              --Asynchronous reset for ALL DFFs
         encoder_q_o : OUT std_logic                              --Serial data output
     );
@@ -46,13 +47,17 @@ BEGIN
             q_sig <= gnd_sig;
             encoder_q_o <= '0';
         ELSIF rising_edge(b_clk_i) THEN                          --Infer DFFs and Muxes
-            IF mux_select = '1' THEN                             --Data input should occur at the start of each N-bit frame
-                                                                 --Need to add Frame Clock to determine when data is transferred in
-                                                                 --Change to IF rising_edge(mux_select) ... or make MUX the frame clk
+            IF falling_edge(LRCK_i) THEN
                 FOR i in bit_depth-1 downto 1 LOOP
-                    q_sig(i) <= encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
+                    q_sig(i) <= left_encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
                 END LOOP;
-                encoder_q_o <= encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
+                encoder_q_o <= left_encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
+            ELSIF rising_edge(LRCK_i) THEN                      --Data input should occur at the start of each N-bit frame
+                                                                 --mux is tied to LRCK to shift parallel data in
+                FOR i in bit_depth-1 downto 1 LOOP
+                    q_sig(i) <= right_encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
+                END LOOP;
+                encoder_q_o <= right_encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
             ELSE                                                --Conditional to shift serial data out
                 FOR i in bit_depth-2 downto 1 LOOP
                     q_sig(i) <= q_sig(i+1);                      --Connect inferred DFFs LSB-to-MSB

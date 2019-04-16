@@ -15,4 +15,3 @@ Clocking Scheme:
 
     Bit Clock (BCK):
         Frequency will be fs*bit_depth*2
-            -E.g. ()

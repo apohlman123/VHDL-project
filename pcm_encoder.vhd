@@ -53,7 +53,7 @@ BEGIN
                     q_sig(i) <= encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
                 END LOOP;
                 encoder_q_o <= encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
-            ELSIF                                                --Conditional to shift serial data out
+            ELSE                                                --Conditional to shift serial data out
                 FOR i in bit_depth-2 downto 1 LOOP
                     q_sig(i) <= q_sig(i+1);                      --Connect inferred DFFs LSB-to-MSB
                 END LOOP;
@@ -64,5 +64,5 @@ BEGIN
                                                                  --asserted, not after it goes low since encoder_q_o gets encoder_d_i(bit_depth-1)
             END IF;
         END IF;
-    END encoder_process;
+    END process encoder_process;
 END behav;

@@ -17,6 +17,9 @@
     --A : created file, wrote encoder_process
     --B : reversed operation to Big Endian (MSB first)
 ------------------------------------------------------------------------------
+--Determine left or right channel mux based on the level of LRCK_i, but OR together the...
+--...edge-detection logic and feed into parallel shift in mux to shift data only on edge
+
 
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.ALL;
@@ -47,12 +50,13 @@ BEGIN
             q_sig <= gnd_sig;
             encoder_q_o <= '0';
         ELSIF rising_edge(b_clk_i) THEN                          --Infer DFFs and Muxes
-            IF falling_edge(LRCK_i) THEN
-                FOR i in bit_depth-1 downto 1 LOOP
-                    q_sig(i) <= left_encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB
-                END LOOP;
-                encoder_q_o <= left_encoder_d_i(bit_depth-1);         --Assign encoder output w/ MSB of parallel data
-            ELSIF rising_edge(LRCK_i) THEN                      --Data input should occur at the start of each N-bit frame
+            q_L_sig <= NOT(LRCK_i);
+            left_channel_select <= q_L_sig AND NOT(LRCK_i);
+            q_R_sig <= LRCK_i;
+            right_channel_select <= q_R_sig AND NOT(LRCK_i);
+            LR_channel_select <= left_channel_select OR right_channel_select;
+
+            IF LR_channel_select = '1' THEN                      --Data input should occur at the start of each N-bit frame
                                                                  --mux is tied to LRCK to shift parallel data in
                 FOR i in bit_depth-1 downto 1 LOOP
                     q_sig(i) <= right_encoder_d_i(bit_depth-1-i);      --Assign DFF outputs w/ parallel data LSB->MSB

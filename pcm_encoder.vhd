@@ -48,12 +48,11 @@ ARCHITECTURE behav OF pcm_encoder IS
     constant gnd_sig     : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
 BEGIN
     encoder_d_sig <= R_encoder_d_i WHEN LRCK_i = '1' ELSE L_encoder_d_i;
-    edge_LRCK_sig <= (NOT(dff_q_1) AND LRCK_i) OR (dff_q_2 AND NOT(LRCK_i));
+    edge_LRCK_sig <= (NOT(dff_q_LREdge) AND LRCK_i) OR (dff_q_LREdge AND NOT(LRCK_i));
 
     clk_edge_process : PROCESS(rst_i_async, b_clk_i)
     BEGIN
         IF rst_i_async = '1' THEN
-            edge_LRCK_sig <= '0';
             dff_q_LREdge <= '0';
         ELSIF rising_edge(b_clk_i) THEN
             dff_q_LREdge <= LRCK_i;

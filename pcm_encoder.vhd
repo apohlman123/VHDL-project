@@ -41,11 +41,10 @@ ENTITY pcm_encoder IS
 END pcm_encoder;
 
 ARCHITECTURE behav OF pcm_encoder IS
-    signal   q_sig       : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
+    signal q_sig         : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
     signal encoder_d_sig : std_logic_vector(bit_depth-1 downto 0);   --LR Mux Output
     signal edge_LRCK_sig : std_logic;
-    signal dff_q_1       : std_logic;                                --Rising edge detect
-    signal dff_q_2       : std_logic;                                --Falling edge detect
+    signal dff_q_LREdge  : std_logic;
     constant gnd_sig     : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
 BEGIN
     encoder_d_sig <= R_encoder_d_i WHEN LRCK_i = '1' ELSE L_encoder_d_i;
@@ -55,11 +54,9 @@ BEGIN
     BEGIN
         IF rst_i_async = '1' THEN
             edge_LRCK_sig <= '0';
-            dff_q_1 <= '0';
-            dff_q_2 <= '0';
+            dff_q_LREdge <= '0';
         ELSIF rising_edge(b_clk_i) THEN
-            dff_q_1 <= LRCK_i;
-            dff_q_2 <= LRCK_i;
+            dff_q_LREdge <= LRCK_i;
         END IF;
     END PROCESS clk_edge_process;
 

@@ -64,9 +64,15 @@ ENTITY pcm_decoder IS
 
 	decoder_d_i		   : IN   std_logic;                                  -- Decoder serial data input
 
-	clk_i      		   : IN   std_logic;                                  -- Input clock
+	b_clk_i            : IN   std_logic;                                  -- Input clock
+	
+	LRCK_i             : IN   std_logic;                                  -- Frame clock input 
+	
+	L_decoder_q_o      : OUT  std_logic_vector(7 DOWNTO 0);     -- Parallel left data output 
+	
+	R_decoder_q_o      : OUT  std_logic_vector(7 DOWNTO 0)     -- Parallel right data output 
 
-    decoder_q_o        : OUT  std_logic_vector(bit_depth-1 DOWNTO 0)      -- Decoder parallel data output
+    --decoder_q_o        : OUT  std_logic_vector(bit_depth-1 DOWNTO 0)      -- Decoder parallel data output
 
   );
 
@@ -78,34 +84,78 @@ ARCHITECTURE behav OF pcm_decoder IS
 
 	signal   q_sig    : std_logic_vector(bit_depth-1  DOWNTO 0);          -- Internal DFF q signals
 
-	constant gnd_sig  : std_logic_vector(7 downto 0)  := "00000000";          -- Ground signal used for reset
+	constant gnd_sig  : std_logic_vector(7 DOWNTO 0)  := "00000000";      -- Ground signal used for reset
+	
+	signal decoder_q_o   : std_logic_vector(7 DOWNTO 0);                  -- Decoder parallel data output
+	
+	signal edge_LRCK_sig : std_logic;                                     --
+    
+	signal dff_q_LREdge  : std_logic;                                     --
 
 BEGIN
 
-	decoder_process: PROCESS(clk_i,rst_i_async)
+    L_decoder_q_o <= decoder_q_o WHEN LRCK_i = '0' ELSE gnd_sig;
+    R_decoder_q_o <= decoder_q_o WHEN LRCK_i = '1' ELSE gnd_sig;
+	
+--	output_process: PROCESS(edge_LRCK_sig)
+--    BEGIN
+--        IF rst_i_async = '1' THEN
+--            L_decoder_q_o <= gnd_sig;
+--			R_decoder_q_o <= gnd_sig;
+--        ELSE
+--			IF LRCK_i = '1' THEN
+--				L_decoder_q_o <= decoder_q_o;
+--			ELSIF LRCK_i = '0' THEN
+--				R_decoder_q_o <= decoder_q_o;
+--		    END IF;
+--        END IF;
+--    END PROCESS output_process;
+
+	
+--	L_decoder_q_o <= ;
+
+    edge_LRCK_sig <= (NOT(dff_q_LREdge) AND LRCK_i) OR (dff_q_LREdge AND NOT(LRCK_i));
+
+    clk_edge_process : PROCESS(rst_i_async, b_clk_i)
+    BEGIN
+        IF rst_i_async = '1' THEN
+            dff_q_LREdge <= '0';
+            L_decoder_q_o <= gnd_sig;
+            R_decoder_q_o <= gnd_sig;            
+        ELSIF rising_edge(b_clk_i) THEN
+            dff_q_LREdge <= LRCK_i;
+        END IF;
+    END PROCESS clk_edge_process;	
+
+
+	decoder_process: PROCESS(b_clk_i,rst_i_async)
 
 	BEGIN
 
 		IF rst_i_async = '1' THEN
 		
-		    d_sig      <= gnd_sig;                                      -- Ground all DFF outputs                                       -- Ground all decoder outputs
+		    d_sig      <= gnd_sig;                                          -- Ground all DFF outputs                                       -- Ground all decoder outputs
 
-		ELSIF rising_edge(clk_i) THEN                                     -- Infer DFFs and assign internal signals to ports
+		ELSIF rising_edge(b_clk_i) THEN                                     -- Infer DFFs and assign internal signals to ports
 			
-		    d_sig(bit_depth - 1) <= decoder_d_i;
+				
+				d_sig(bit_depth - 1) <= decoder_d_i;
 
-			FOR i IN (bit_depth - 1) DOWNTO 1 LOOP                        -- Assign all DFF q outputs to following DFF d inputs
+				FOR i IN (bit_depth - 1) DOWNTO 1 LOOP                      -- Assign all DFF q outputs to following DFF d inputs
 
-			     d_sig(i-1) <= d_sig(i);
+					 d_sig(i-1) <= d_sig(i);
 
-			END LOOP;
+				END LOOP;
+				
+				q_sig <= d_sig;
+				
+			--END IF;
 			
-			q_sig <= d_sig;
-			
-		END IF;
-
-	    decoder_q_o <= q_sig;
-
+		
+             IF edge_LRCK_sig = '1' THEN                                     --Data input should occur at the start of each N-bit 
+	              decoder_q_o <= q_sig;
+             END IF;
+        END IF;
 	END PROCESS decoder_process;
 
 END behav;

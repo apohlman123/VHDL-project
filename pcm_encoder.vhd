@@ -26,8 +26,9 @@ USE IEEE.std_logic_1164.ALL;
 
 ENTITY pcm_encoder IS
     GENERIC (
-        bit_depth   : integer := 8;                                 --Variable bit depth (8,16,24,32)
-        sample_freq : integer := 44100                           --Variable sampling frequency (44.1k,48k,96k,192k)
+        bit_depth   : integer := 8;                                --Variable bit depth (8,16,24,32)
+        sample_freq : integer := 44100;                            --Variable sampling frequency (44.1k,48k,96k,192k)
+        MCLK_freq   : integer := 28224000
     );
 
     PORT (
@@ -35,18 +36,40 @@ ENTITY pcm_encoder IS
         L_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0); --Parallel data input
         R_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0);
         LRCK_i        : IN std_logic;                              --Frame clock input
+        MCLK_i        : IN std_logic;                              --Master clock input
         rst_i_async   : IN std_logic;                              --Asynchronous reset for ALL DFFs
         encoder_q_o   : OUT std_logic                              --Serial data output
     );
 END pcm_encoder;
 
 ARCHITECTURE behav OF pcm_encoder IS
-    signal q_sig         : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
-    signal encoder_d_sig : std_logic_vector(bit_depth-1 downto 0);   --LR Mux Output
-    signal edge_LRCK_sig : std_logic;
-    signal dff_q_LREdge  : std_logic;
-    constant gnd_sig     : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
+    signal q_sig          : std_logic_vector(bit_depth-1 downto 1);   --Internal DFF outputs
+    signal encoder_d_sig  : std_logic_vector(bit_depth-1 downto 0);   --LR Mux Output
+    signal edge_LRCK_sig  : std_logic;
+    signal dff_q_LREdge   : std_logic;
+    constant gnd_sig      : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
+    constant BCK_freq     : integer := sample_freq*bit_depth*2;
+
+    signal clk_count_LRCK : integer range 0 to MCLK_freq/sample_freq; --For bit depth 8, fs 44.1kHz, this is 640
+    signal clk_count_BCK  : integer range 0 to MCLK_freq/BCK_freq;    --For bit depth 8, fs 44.1kHz, this is 40
 BEGIN
+    sync_clk_en : PROCESS(rst_i_async, MCLK_i)
+    BEGIN
+        IF rst_i_async = '1' THEN
+            clk_count_LRCK <= 0;
+            clk_count_BCK <= 0;
+            LRCK_i <= 0;
+            b_clk_i <= 0;
+        ELSIF rising_edge(MCLK_i) THEN
+            IF clk_count_LRCK = MCLK_freq/sample_freq THEN
+                clk_count_LRCK <= 0;
+                enable_LRCK_i <= '1';
+            ELSIF clk_count_BCK = MCLK_freq/BCK_freq THEN
+                clk_count_BCK <= 0;
+                enable_BCK_i <= '1';
+
+
+
     encoder_d_sig <= R_encoder_d_i WHEN LRCK_i = '1' ELSE L_encoder_d_i;
     edge_LRCK_sig <= (NOT(dff_q_LREdge) AND LRCK_i) OR (dff_q_LREdge AND NOT(LRCK_i));
 

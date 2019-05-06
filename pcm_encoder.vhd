@@ -50,9 +50,9 @@ ARCHITECTURE behav OF pcm_encoder IS
     constant gnd_sig      : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
 
     constant BCK_freq     : integer := sample_freq*bit_depth*2;
-    constant BCK_count    : integer := MCLK_freq/BCK_freq;    --For bit depth 8, fs 44.1kHz, this is 40
-    signal clk_counter    : integer range 0 to MCLK_freq/sample_freq; --For bit depth 8, fs 44.1kHz, this is 640
-    signal clk_diff       : integer range 0 to MCLK_freq/sample_freq; --Keep track of difference between edges
+    constant BCK_count    : integer := MCLK_freq/(2*BCK_freq);    --For bit depth 8, fs 44.1kHz, this is 20
+    signal clk_counter    : integer range 0 to MCLK_freq/(2*sample_freq); --For bit depth 8, fs 44.1kHz, this is 640
+    signal clk_diff       : integer range 0 to MCLK_freq/(2*sample_freq); --Keep track of difference between edges
     signal BCK_i   : std_logic; --Bit Clock
     signal LRCK_i  : std_logic; --Frame Clock
 BEGIN
@@ -64,19 +64,19 @@ BEGIN
             LRCK_i <= '0';
             BCK_i <= '0';
         ELSIF rising_edge(MCLK_i) THEN
-            IF clk_counter = MCLK_freq/sample_freq THEN
+            IF clk_counter = MCLK_freq/(2*sample_freq) THEN
                 clk_diff <= 0;
                 clk_counter <= 0;
-                BCK_i <= '1';
-                LRCK_i <= '1';
+                BCK_i <= NOT(BCK_i);
+                LRCK_i <= NOT(LRCK_i);
             ELSIF clk_counter - clk_diff = BCK_count THEN
                 clk_diff <= clk_counter;
-                BCK_i <= '1';
+                BCK_i <= NOT(BCK_i);
                 clk_counter <= clk_counter + 1;
-            ELSE
-                clk_counter <= clk_counter + 1;
-                BCK_i <= '0';
-                LRCK_i <= '0';
+            --ELSIF clk_counter - clk_diff <= BCK_count/2 THEN
+            --    clk_counter <= clk_counter + 1;
+            --    BCK_i <= '0';
+            --    LRCK_i <= '0';
             END IF;
         END IF;
     END PROCESS sync_clk_en;

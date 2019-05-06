@@ -77,6 +77,11 @@ architecture test of pcm_encoder_tb is
               rst_i_async_s <= '1';
               wait for 50 ns;
               rst_i_async_s <= '0';
+              wait for 950 ns;
+              L_encoder_d_i_s <= "11110000";
+              R_encoder_d_i_s <= "10101010";
+              wait for 1000 ns;
+              rst_i_async_s <= '1';
               wait;
 
 

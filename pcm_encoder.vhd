@@ -66,7 +66,7 @@ BEGIN
         ELSIF rising_edge(MCLK_i) THEN
             IF clk_counter = MCLK_freq/(2*sample_freq) THEN
                 clk_diff <= 0;
-                clk_counter <= 0;
+                clk_counter <= 1;
                 BCK_i <= NOT(BCK_i);
                 LRCK_i <= NOT(LRCK_i);
             ELSIF clk_counter - clk_diff = BCK_count THEN

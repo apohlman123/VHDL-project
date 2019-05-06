@@ -73,6 +73,8 @@ BEGIN
                 clk_diff <= clk_counter;
                 BCK_i <= NOT(BCK_i);
                 clk_counter <= clk_counter + 1;
+            ELSE
+                clk_counter <= clk_counter + 1;
             --ELSIF clk_counter - clk_diff <= BCK_count/2 THEN
             --    clk_counter <= clk_counter + 1;
             --    BCK_i <= '0';
@@ -109,7 +111,7 @@ BEGIN
                 FOR i in bit_depth-2 downto 1 LOOP
                     q_sig(i) <= q_sig(i+1);                      --Connect inferred DFFs LSB-to-MSB
                 END LOOP;
-                q_sig(bit_depth-1) <= '1';                       --LSB DFF gets a '1' input
+                q_sig(bit_depth-1) <= '0';                       --LSB DFF gets a '1' input
                 encoder_q_o <= q_sig(1);                         --Assign encoder output w/ LSB DFF output
                                                                  --Note that DATA is MSB first
                                                                  --Also, first serial data bit is valid as soon as mux_select is

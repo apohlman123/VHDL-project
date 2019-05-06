@@ -50,7 +50,7 @@ ARCHITECTURE behav OF pcm_decoder IS
 	signal   decoder_q_o           : std_logic_vector(bit_depth-1 DOWNTO 0);                  -- Decoder parallel data output
 	signal   edge_LRCK_sig         : std_logic;                                               -- Left / Right edge trigger 
 	signal   dff_q_LREdge          : std_logic;                                               -- Frame clock rises on falling edge of Left / Right edge trigger 
-    constant gnd_sig               : std_logic_vector(bit_depth-1 DOWNTO 0)  := "00000000";   -- Ground signal used for reset
+    constant gnd_sig               : std_logic_vector(bit_depth-1 DOWNTO 0)  := (others => '0');   -- Ground signal used for reset
 
     constant BCK_freq              : integer := sample_freq*bit_depth*2;
     constant BCK_count             : integer := MCLK_freq/(2*BCK_freq);             -- For bit depth 8, fs 44.1kHz, this is 20
@@ -91,8 +91,6 @@ BEGIN
     R_decoder_q_o <= decoder_q_o WHEN dff_q_LREdge = '1';-- ELSE gnd_sig;                 -- Assign fully shifted bit stream to right decoder output
     
     edge_LRCK_sig <= (NOT(dff_q_LREdge) AND LRCK_i) OR (dff_q_LREdge AND NOT(LRCK_i));    -- Combinational logic to implement Left / Right edge trigger 
-
-
 
 ------------------------------------------------------------------------------
 --  clk_edge_process derives the frame clock from the Left / Right edge trigger 

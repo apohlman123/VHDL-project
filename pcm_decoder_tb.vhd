@@ -62,12 +62,12 @@ architecture test of pcm_decoder_tb is
         
         decoder_d_i_s <= '0';
         rst_i_async_s <= '1';
-        wait for (40*clock_period)/2;
+        wait for (40*clock_period);
         rst_i_async_s <= '0';
         --wait for clock_period/2;
         --rst_i_async_s <= '0';
         decoder_d_i_s <= '0';
-        wait for (40*clock_period);
+        wait for (20*clock_period+0.5*clock_period);
         rst_i_async_s <= '0';
         decoder_d_i_s <= '0';
         wait for (40*clock_period);

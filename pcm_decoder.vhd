@@ -74,7 +74,7 @@ BEGIN
         ELSIF rising_edge(MCLK_i) THEN
             IF clk_counter = MCLK_freq/(2*sample_freq) THEN
                 clk_diff <= 0;
-                clk_counter <= 0;
+                clk_counter <= 1;
                 BCK_i <= NOT(BCK_i);
                 LRCK_i <= NOT(LRCK_i);
             ELSIF clk_counter - clk_diff = BCK_count THEN
@@ -86,7 +86,6 @@ BEGIN
             END IF;
         END IF;
     END PROCESS sync_clk_en;
-	
 	
     L_decoder_q_o <= decoder_q_o WHEN dff_q_LREdge = '0';                                 -- Assign fully shifted bit stream to left decoder output
     R_decoder_q_o <= decoder_q_o WHEN dff_q_LREdge = '1';-- ELSE gnd_sig;                 -- Assign fully shifted bit stream to right decoder output

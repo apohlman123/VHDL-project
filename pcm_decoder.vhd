@@ -45,7 +45,8 @@ ENTITY pcm_decoder IS
 END pcm_decoder;
 
 ARCHITECTURE behav OF pcm_decoder IS
-    signal   decoder_d_sig         : std_logic_vector(0 TO bit_depth-1  );                    -- Internal DFF data signals        
+    signal   decoder_d_sig         : std_logic_vector(0 TO bit_depth-1  );                    -- Internal DFF data signals  
+    signal   decoder_q_sig         : std_logic_vector(0 TO bit_depth-1  );                    -- Internal extra DFF output signals      
 	signal   decoder_q_o           : std_logic_vector(bit_depth-1 DOWNTO 0);                  -- Decoder parallel data output
 	signal   edge_LRCK_sig         : std_logic;                                               -- Left / Right edge trigger 
 	signal   dff_q_LREdge          : std_logic;                                               -- Frame clock rises on falling edge of Left / Right edge trigger 
@@ -114,17 +115,19 @@ BEGIN
 	decoder_process: PROCESS(BCK_i,rst_i_async)
 	BEGIN
 		IF rst_i_async = '1' THEN
-		    decoder_d_sig       <= gnd_sig;                                          -- Ground all internal DFFs                                       
+		    decoder_d_sig       <= gnd_sig;                                          -- Ground all internal DFFs    
+		    decoder_q_sig       <= gnd_sig;                                          -- Ground all internal DFFs                                    
 			decoder_q_o         <= gnd_sig;                                          -- Ground all internal DFFs    		
 		ELSIF rising_edge(BCK_i) THEN                                                -- Infer DFFs and assign internal signals to ports	
 				decoder_d_sig(bit_depth - 1) <= decoder_d_i;                         -- Load input bit of data into first DFF
 				FOR i IN (bit_depth - 1) DOWNTO 1 LOOP                               -- Assign all DFF q outputs to following DFF d inputs
 					 decoder_d_sig(i-1) <= decoder_d_sig(i);                         -- Shift all DFFs exluding first
-				END LOOP;		
-				IF edge_LRCK_sig = '1' THEN                                          -- Data input should occur at the start of each N-bit 
-				     decoder_q_o <= decoder_d_sig;                                   -- Assign serially shifted frame in parallel to decoder output
-				END IF;	  									
+				END LOOP;
+				decoder_q_sig <= decoder_d_sig;										
         END IF;
+        IF edge_LRCK_sig = '1' THEN                                          -- Data input should occur at the start of each N-bit 
+             decoder_q_o <= decoder_q_sig;                                   -- Assign serially shifted frame in parallel to decoder output
+        END IF;	  	        
 	END PROCESS decoder_process;
 
 END behav;

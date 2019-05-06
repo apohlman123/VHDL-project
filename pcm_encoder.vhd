@@ -31,11 +31,11 @@ ENTITY pcm_encoder IS
         MCLK_freq   : integer := 28224000
     );
 
-    PORT (
-        b_clk_i       : IN std_logic;                              --Bit Clock input to shift data
+    PORT ( --Delete b_clk_i, Delete LRCK_i, they are internal signals now
+        --b_clk_i       : IN std_logic;                              --Bit Clock input to shift data
         L_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0); --Parallel data input
         R_encoder_d_i : IN std_logic_vector(bit_depth-1 downto 0);
-        LRCK_i        : IN std_logic;                              --Frame clock input
+        --LRCK_i        : IN std_logic;                              --Frame clock input
         MCLK_i        : IN std_logic;                              --Master clock input
         rst_i_async   : IN std_logic;                              --Asynchronous reset for ALL DFFs
         encoder_q_o   : OUT std_logic                              --Serial data output
@@ -48,46 +48,57 @@ ARCHITECTURE behav OF pcm_encoder IS
     signal edge_LRCK_sig  : std_logic;
     signal dff_q_LREdge   : std_logic;
     constant gnd_sig      : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
-    constant BCK_freq     : integer := sample_freq*bit_depth*2;
 
-    signal clk_count_LRCK : integer range 0 to MCLK_freq/sample_freq; --For bit depth 8, fs 44.1kHz, this is 640
-    signal clk_count_BCK  : integer range 0 to MCLK_freq/BCK_freq;    --For bit depth 8, fs 44.1kHz, this is 40
+    constant BCK_freq     : integer := sample_freq*bit_depth*2;
+    constant BCK_count    : integer := MCLK_freq/BCK_freq;    --For bit depth 8, fs 44.1kHz, this is 40
+    signal clk_counter    : integer range 0 to MCLK_freq/sample_freq; --For bit depth 8, fs 44.1kHz, this is 640
+    signal clk_diff       : integer range 0 to MCLK_freq/sample_freq; --Keep track of difference between edges
+    signal BCK_i   : std_logic; --Bit Clock
+    signal LRCK_i  : std_logic; --Frame Clock
 BEGIN
     sync_clk_en : PROCESS(rst_i_async, MCLK_i)
     BEGIN
         IF rst_i_async = '1' THEN
-            clk_count_LRCK <= 0;
-            clk_count_BCK <= 0;
-            LRCK_i <= 0;
-            b_clk_i <= 0;
+            clk_counter <= 0;
+            clk_diff <= 0;
+            LRCK_i <= '0';
+            BCK_i <= '0';
         ELSIF rising_edge(MCLK_i) THEN
-            IF clk_count_LRCK = MCLK_freq/sample_freq THEN
-                clk_count_LRCK <= 0;
-                enable_LRCK_i <= '1';
-            ELSIF clk_count_BCK = MCLK_freq/BCK_freq THEN
-                clk_count_BCK <= 0;
-                enable_BCK_i <= '1';
-
-
+            IF clk_counter = MCLK_freq/sample_freq THEN
+                clk_diff <= 0;
+                clk_counter <= 0;
+                BCK_i <= '1';
+                LRCK_i <= '1';
+            ELSIF clk_counter - clk_diff = BCK_count THEN
+                clk_diff <= clk_counter;
+                BCK_i <= '1';
+                clk_counter <= clk_counter + 1;
+            ELSE
+                clk_counter <= clk_counter + 1;
+                BCK_i <= '0';
+                LRCK_i <= '0';
+            END IF;
+        END IF;
+    END PROCESS sync_clk_en;
 
     encoder_d_sig <= R_encoder_d_i WHEN LRCK_i = '1' ELSE L_encoder_d_i;
     edge_LRCK_sig <= (NOT(dff_q_LREdge) AND LRCK_i) OR (dff_q_LREdge AND NOT(LRCK_i));
 
-    clk_edge_process : PROCESS(rst_i_async, b_clk_i)
+    clk_edge_process : PROCESS(rst_i_async, BCK_i)
     BEGIN
         IF rst_i_async = '1' THEN
             dff_q_LREdge <= '0';
-        ELSIF rising_edge(b_clk_i) THEN
+        ELSIF rising_edge(BCK_i) THEN
             dff_q_LREdge <= LRCK_i;
         END IF;
     END PROCESS clk_edge_process;
 
-    encoder_process : PROCESS(rst_i_async, b_clk_i)
+    encoder_process : PROCESS(rst_i_async, BCK_i)
     BEGIN
         IF rst_i_async = '1' THEN
             q_sig <= gnd_sig;
             encoder_q_o <= '0';
-        ELSIF rising_edge(b_clk_i) THEN                          --Infer DFFs and Muxes
+        ELSIF rising_edge(BCK_i) THEN                          --Infer DFFs and Muxes
             IF edge_LRCK_sig = '1' THEN                      --Data input should occur at the start of each N-bit frame
                                                                  --mux is tied to LRCK to shift parallel data in
                 FOR i in bit_depth-1 downto 1 LOOP

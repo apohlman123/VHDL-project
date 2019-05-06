@@ -47,7 +47,7 @@ ARCHITECTURE behav OF pcm_encoder IS
     signal encoder_d_sig  : std_logic_vector(bit_depth-1 downto 0);   --LR Mux Output
     signal edge_LRCK_sig  : std_logic;
     signal dff_q_LREdge   : std_logic;
-    constant gnd_sig      : std_logic_vector(bit_depth-1 downto 1) := "0000000";  --Used for GND in reset
+    constant gnd_sig      : std_logic_vector(bit_depth-1 downto 1) := (others => '0');  --Used for GND in reset
 
     constant BCK_freq     : integer := sample_freq*bit_depth*2;
     constant BCK_count    : integer := MCLK_freq/(2*BCK_freq);    --For bit depth 8, fs 44.1kHz, this is 20

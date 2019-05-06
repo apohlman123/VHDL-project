@@ -26,9 +26,10 @@ entity pcm_encoder_tb is
 end entity;
 
 architecture test of pcm_encoder_tb is
+    constant bit_depth_tb  : integer := 8;
     --signal b_clk_i_s       : std_logic;
-    signal L_encoder_d_i_s : std_logic_vector(7 downto 0);
-    signal R_encoder_d_i_s : std_logic_vector(7 downto 0);
+    signal L_encoder_d_i_s : std_logic_vector(bit_depth_tb-1 downto 0);
+    signal R_encoder_d_i_s : std_logic_vector(bit_depth_tb-1 downto 0);
     --signal LRCK_i_s        : std_logic;
     signal rst_i_async_s   : std_logic;
     signal MCLK_i_s        : std_logic;
@@ -42,7 +43,7 @@ architecture test of pcm_encoder_tb is
         generic map(
             bit_depth => 8,
             sample_freq => 44100,
-            MCLK_freq => 28224000
+            MCLK_freq => 28224000 --24576000 used for 48k, 96k, 192k sampling rates
         )
         port map(
             --b_clk_i       => b_clk_i_s,
@@ -72,14 +73,14 @@ architecture test of pcm_encoder_tb is
 
         stim_process : process
         begin
-              L_encoder_d_i_s <= "11001101";
-              R_encoder_d_i_s <= "01110100";
+              L_encoder_d_i_s <= "11001101"; --"1100110101100110" for 16-bit
+              R_encoder_d_i_s <= "01110100"; --"0111010011110101"
               rst_i_async_s <= '1';
               wait for 50 ns;
               rst_i_async_s <= '0';
-              wait for 950 ns;
-              L_encoder_d_i_s <= "11110000";
-              R_encoder_d_i_s <= "10101010";
+              wait for 950 ns; --950ns to 2000ns depending on bit depth and sample freq
+              L_encoder_d_i_s <= "11110000"; --"1111000011110000"
+              R_encoder_d_i_s <= "10101010"; --"1010101010101010"
               wait for 1000 ns;
               rst_i_async_s <= '1';
               wait;
